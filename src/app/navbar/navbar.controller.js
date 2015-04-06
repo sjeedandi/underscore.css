@@ -1,6 +1,7 @@
 'use strict';
 
-angular.module('sjeeUtilities')
-  .controller('NavbarCtrl', function ($scope) {
+angular.module('app')
+  .controller('NavbarCtrl', function ($scope, underscoreCssComponents) {
     $scope.date = new Date();
+    $scope.components = underscoreCssComponents;
   });

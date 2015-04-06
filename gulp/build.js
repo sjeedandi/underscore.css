@@ -8,57 +8,84 @@ var $ = require('gulp-load-plugins')({
 
 module.exports = function(options) {
 
-  gulp.task('dist', function () {
-    var lessOptions = {
-      options: [
-        // 'bower_components',
-        options.src + '/app',
-        options.src + '/components',
-        '!' + options.src + '/app/vendor.less'
-      ]
-    };
+  gulp.task('partials', function () {
+    
+    return gulp.src([
+      options.src + '/{app,components}/**/*.html',
+      options.tmp + '/serve/{app,components}/**/*.html'
+    ])
+      .pipe($.minifyHtml({
+        empty: true,
+        spare: true,
+        quotes: true
+      }))
+      .pipe($.angularTemplatecache('templateCacheHtml.js', {
+        module: 'app'
+      }))
+      .pipe(gulp.dest(options.tmp + '/partials/'));
+  });
 
-    var injectFiles = gulp.src([
-      options.src + '/{app,components}/**/*.less',
-      '!' + options.src + '/app/index.less',
-      '!' + options.src + '/app/vendor.less'
-    ], { read: false });
-
-    var injectOptions = {
-      transform: function(filePath) {
-        filePath = filePath.replace(options.src + '/app/', '');
-        filePath = filePath.replace(options.src + '/components/', '../components/');
-        return '@import \'' + filePath + '\';';
-      },
-      starttag: '// injector',
-      endtag: '// endinjector',
+  gulp.task('html', ['inject', 'partials'], function () {
+    
+    var partialsInjectFile = gulp.src(options.tmp + '/partials/templateCacheHtml.js', { read: false });
+    var partialsInjectOptions = {
+      starttag: '<!-- inject:partials -->',
+      ignorePath: options.tmp + '/partials',
       addRootSlash: false
     };
 
-    var indexFilter = $.filter('index.less');
+    var htmlFilter = $.filter('*.html');
+    var jsFilter = $.filter('**/*.js');
+    var cssFilter = $.filter('**/*.css');
+    var assets;
 
+    return gulp.src(options.tmp + '/serve/*.html')
+      .pipe($.inject(partialsInjectFile, partialsInjectOptions))
+      .pipe(assets = $.useref.assets())
+      .pipe($.rev())
+      .pipe(jsFilter)
+      .pipe($.ngAnnotate())
+      .pipe($.uglify({ preserveComments: $.uglifySaveLicense })).on('error', options.errorHandler('Uglify'))
+      .pipe(jsFilter.restore())
+      .pipe(cssFilter)
+      .pipe($.replace('../../bower_components/bootstrap/fonts/', '../fonts/'))
+      .pipe($.csso())
+      .pipe(cssFilter.restore())
+      .pipe(assets.restore())
+      .pipe($.useref())
+      .pipe($.revReplace())
+      .pipe(htmlFilter)
+      .pipe($.minifyHtml({
+        empty: true,
+        spare: true,
+        quotes: true,
+        conditionals: true
+      }))
+      .pipe(htmlFilter.restore())
+      .pipe(gulp.dest(options.dist + '/'))
+      .pipe($.size({ title: options.dist + '/', showFiles: true }));
+  });
+
+  // Only applies for fonts from bower dependencies
+  // Custom fonts are handled by the "other" task
+  gulp.task('fonts', function () {
+    return gulp.src($.mainBowerFiles())
+      .pipe($.filter('**/*.{eot,svg,ttf,woff,woff2}'))
+      .pipe($.flatten())
+      .pipe(gulp.dest(options.dist + '/fonts/'));
+  });
+
+  gulp.task('other', function () {
     return gulp.src([
-      options.src + '/app/index.less',
-      // options.src + '/app/vendor.less'
+      options.src + '/**/*',
+      '!' + options.src + '/**/*.{html,css,js,less}'
     ])
-    .pipe(indexFilter)
-    .pipe($.inject(injectFiles, injectOptions))
-    .pipe(indexFilter.restore())
-    .pipe($.sourcemaps.init())
-    .pipe($.less(lessOptions)).on('error', options.errorHandler('Less'))
-    .pipe($.autoprefixer()).on('error', options.errorHandler('Autoprefixer'))
-    .pipe($.sourcemaps.write())
-    .pipe($.rename('underscore.css'))
-    .pipe(gulp.dest(options.dist + '/'))
-    .pipe($.minifyCss({keepSpecialComments:'*'}))
-    .pipe($.sourcemaps.write())
-    .pipe($.rename('underscore.min.css'))
-    .pipe(gulp.dest(options.dist + '/'));
-    // .pipe(browserSync.reload({ stream: true }));
+      .pipe(gulp.dest(options.dist + '/'));
   });
 
-
-  gulp.task('build', ['clean'], function () {
-    gulp.start('dist');
+  gulp.task('clean', function (done) {
+    $.del([options.dist + '/', options.tmp + '/'], done);
   });
+
+  gulp.task('build', ['html', 'fonts', 'other']);
 };

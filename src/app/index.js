@@ -1,12 +1,16 @@
 'use strict';
 
-angular.module('sjeeUtilities', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ui.router'])
+angular.module('app', ['ng','ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ui.router'])
   .config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
       .state('home', {
         url: '/:component',
         templateUrl: function ($stateParams) {
-          return 'app/'+ $stateParams.component +'/'+ $stateParams.component +'.html';
+          // console.log('stateParams', $stateParams.component.length)
+          // if ($stateParams.component.length) {
+
+          // }
+          return $stateParams.component.length > 0 ? 'components/'+ $stateParams.component +'/'+ $stateParams.component +'.html' : 'app/home.html';
         },
         // controller: 'MainCtrl'
       });
