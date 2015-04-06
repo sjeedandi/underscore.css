@@ -1,0 +1,22 @@
+// flex.less
+// @sjeedandi
+
+@_flex-item-padding: 10px;
+
+&flex {
+    &-container {
+        display: flex;
+        height: 100%;
+    }
+    &-row {
+        flex-direction: row;
+    }
+    &-item {
+        flex: 1 1 auto;
+        padding: @_flex-item-padding;
+    }
+    &-stretch {
+        align-self: stretch;
+    }
+}
+

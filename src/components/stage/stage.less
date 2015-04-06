@@ -1,0 +1,43 @@
+// flex.less
+// @sjeedandi
+
+@_stage-bg: #f5f5f5;
+@_stage-panel-width: 20%;
+@_stage-padding: 0;
+
+&stage {
+    
+    box-sizing: border-box;
+    position: fixed;
+    overflow-y: scroll;
+    top:0;
+    bottom:0;
+    width: 100%;
+    z-index: 1;
+    padding: @_stage-padding;
+    background-color: @_stage-bg;
+    
+    &-orientation-right.open {
+        margin-left: -@_stage-panel-width !important;
+    }
+    &-orientation-left.open {
+        margin-right: -@_stage-panel-width !important;
+    }
+    
+    // Hidden panel
+    &-panel {
+        &-right {
+            z-index: 0;
+            position: fixed;
+            width: @_stage-panel-width;
+            right: 0;
+            bottom:0;
+            top:0;
+        }
+        &-left {
+            right: auto !important;
+            width: @_stage-panel-width;
+        }
+    }
+}
+

@@ -1,0 +1,42 @@
+// position.less
+// @sjeedandi
+
+@_padding-vertical: 20px;
+
+&position {
+
+  // Set position relative on offset element
+  position: relative;
+  
+  &-middle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  &-left {
+    position: absolute;
+    left: @_padding-vertical;
+  }
+  &-right {
+    position: absolute;
+    right: @_padding-vertical;
+  }
+  &-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  &-middle&-center {
+    transform: translateY(-50%) translateX(-50%);
+  } 
+  &-bottom {
+    position: absolute;
+    bottom: 0;
+  }
+  &-top {
+    position: absolute;
+    top: @_padding-vertical;
+  }
+
+}
